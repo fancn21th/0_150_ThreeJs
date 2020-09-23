@@ -52,6 +52,10 @@
       const mesh = new THREE.Mesh(geometry, material);
       scene.add(mesh);
 
+      const light = new THREE.PointLight(0xffffff, 1, 500);
+      light.position.set(10, 0, 25);
+      scene.add(light);
+
       renderer.render(scene, camera);
     </script>
   </body>
