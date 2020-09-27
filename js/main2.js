@@ -42,7 +42,7 @@ const createEarth = function () {
 
   const material = new THREE.MeshPhongMaterial();
 
-  material.map = THREE.ImageUtils.loadTexture("css_globe_diffuse.jpg");
+  material.map = THREE.ImageUtils.loadTexture("./images/css_globe_diffuse.jpg");
 
   earth = new THREE.Mesh(geometry, material);
 
