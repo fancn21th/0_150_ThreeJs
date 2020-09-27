@@ -45,17 +45,16 @@
         camera.updateProjectionMatrix();
       });
 
-      // const geometry = new THREE.SphereGeometry(1, 10, 10);
-      const geometry = new THREE.BoxGeometry(1, 1, 1);
-      const material = new THREE.MeshLambertMaterial({
-        color: 0xffcc000,
-      });
-      const mesh = new THREE.Mesh(geometry, material);
+      const geometry = new THREE.SphereGeometry(0.5, 32, 32);
 
-      // mesh.position.x = 2;
-      // mesh.position.set(2, 2, 0);
-      // mesh.rotation.set(45, 0, 0);
-      // mesh.scale.set(1, 2, 1);
+      const material = new THREE.MeshPhongMaterial();
+      material.map = THREE.ImageUtils.loadTexture("earthmap1k.jpg");
+      material.bumpMap = THREE.ImageUtils.loadTexture("earthbump1k.jpg");
+      material.bumpScale = 0.05;
+      material.specularMap = THREE.ImageUtils.loadTexture("earthspec1k.jpg");
+      material.specular = new THREE.Color("grey");
+
+      const mesh = new THREE.Mesh(geometry, material);
 
       scene.add(mesh);
 
@@ -67,30 +66,13 @@
       const render = () => {
         requestAnimationFrame(render);
 
-        // mesh.rotation.x += 0.01;
+        mesh.rotation.x += 0.01;
+        mesh.rotation.y += 0.01;
 
         renderer.render(scene, camera);
       };
 
       render();
-
-      // this.tl = new TimelineMax().delay(0.3);
-      const tl = new TimelineMax({
-        paused: true,
-      });
-      tl.to(mesh.scale, 1, { x: 2, ease: Expo.easeOut });
-      tl.to(mesh.scale, 0.5, { x: 0.5, ease: Expo.easeOut });
-      tl.to(mesh.position, 0.5, { x: 2, ease: Expo.easeOut });
-      tl.to(
-        mesh.rotation,
-        0.5,
-        { y: Math.PI * 0.5, ease: Expo.easeOut },
-        "=-1.5"
-      );
-
-      document.body.addEventListener("click", () => {
-        tl.play();
-      });
     </script>
   </body>
 </html>
