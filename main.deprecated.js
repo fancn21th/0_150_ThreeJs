@@ -25,12 +25,6 @@ const geometry = new THREE.SphereGeometry(0.5, 32, 32);
 const material = new THREE.MeshPhongMaterial();
 material.map = THREE.ImageUtils.loadTexture("css_globe_diffuse.jpg");
 
-// material.map = THREE.ImageUtils.loadTexture("earthmap1k.jpg");
-// material.bumpMap = THREE.ImageUtils.loadTexture("earthbump1k.jpg");
-// material.bumpScale = 0.05;
-// material.specularMap = THREE.ImageUtils.loadTexture("earthspec1k.jpg");
-// material.specular = new THREE.Color("grey");
-
 const mesh = new THREE.Mesh(geometry, material);
 
 scene.add(mesh);
