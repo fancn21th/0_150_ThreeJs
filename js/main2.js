@@ -1,6 +1,7 @@
-let scene, camera, renderer;
+let scene, camera, renderer, _Fly, flyline;
 let earth;
 let light;
+let clock = new THREE.Clock();
 
 const createEarth = function () {
   const geometry = new THREE.SphereGeometry(1, 32, 32);
@@ -13,6 +14,34 @@ const createEarth = function () {
 
   scene.add(earth);
 };
+
+const createFly = function () {
+  _Fly = new InitFly({
+    texture: "../images/point.png",
+  });
+
+  const curve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(2, 5, 0),
+    new THREE.Vector3(5, 0, 0)
+  );
+  const points = curve.getPoints(500);
+
+  flyline = _Fly.addFly({
+    color: `rgba(${THREE.Math.randInt(0, 255)},${THREE.Math.randInt(
+      0,
+      255
+    )},${THREE.Math.randInt(0, 255)},1)`,
+    curve: points,
+    width: 0.05,
+    length: 150,
+    speed: 1,
+    repeat: Infinity,
+  });
+
+  scene.add(flyline);
+};
+
 ///////////////////////////////////////////////
 
 // set up the environment -
@@ -20,7 +49,7 @@ const createEarth = function () {
 const init = function () {
   // create the scene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xfffff);
+  scene.background = new THREE.Color(0x000000);
 
   // create an locate the camera
 
@@ -47,6 +76,8 @@ const init = function () {
 
   // do something rendering
 
+  // fly
+  createFly();
   createEarth();
 
   // create the renderer
@@ -68,6 +99,11 @@ const init = function () {
 
 // main animation loop - calls 50-60 in a second.
 const mainLoop = function () {
+  if (_Fly) {
+    const delta = clock.getDelta();
+    // 更新线 必须
+    _Fly.animation(delta);
+  }
   renderer.render(scene, camera);
   requestAnimationFrame(mainLoop);
 };
