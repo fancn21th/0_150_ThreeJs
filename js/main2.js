@@ -3,7 +3,7 @@ let earth;
 let light;
 
 const createEarth = function () {
-  const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+  const geometry = new THREE.SphereGeometry(1, 32, 32);
 
   const material = new THREE.MeshPhongMaterial();
 
@@ -22,12 +22,6 @@ const init = function () {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xfffff);
 
-  light = new THREE.PointLight(0xfffff, 1, 500);
-
-  light.position.set(10, 0, 25);
-
-  scene.add(light);
-
   // create an locate the camera
 
   camera = new THREE.PerspectiveCamera(
@@ -36,7 +30,20 @@ const init = function () {
     0.1,
     1000
   );
-  camera.position.z = 2;
+  camera.position.x = 1;
+  camera.position.y = 1;
+  camera.position.z = 5;
+
+  // light
+  light = new THREE.PointLight(0xfffff, 1, 500);
+
+  light.position.set(10, 0, 25);
+
+  scene.add(light);
+
+  // axes helper 坐标辅助线
+  let axes = new THREE.AxesHelper(10);
+  scene.add(axes);
 
   // do something rendering
 
