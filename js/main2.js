@@ -1,12 +1,32 @@
 let scene, camera, renderer;
 let earth;
+let light;
+
+const createEarth = function () {
+  const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+
+  const material = new THREE.MeshPhongMaterial();
+
+  material.map = THREE.ImageUtils.loadTexture("./images/css_globe_diffuse.jpg");
+
+  earth = new THREE.Mesh(geometry, material);
+
+  scene.add(earth);
+};
+///////////////////////////////////////////////
 
 // set up the environment -
-// initiallize scene, camera, objects and renderer
+// initialize scene, camera, objects and renderer
 const init = function () {
   // create the scene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x00000);
+  scene.background = new THREE.Color(0xfffff);
+
+  light = new THREE.PointLight(0xfffff, 1, 500);
+
+  light.position.set(10, 0, 25);
+
+  scene.add(light);
 
   // create an locate the camera
 
@@ -17,6 +37,8 @@ const init = function () {
     1000
   );
   camera.position.z = 2;
+
+  // do something rendering
 
   createEarth();
 
@@ -35,23 +57,6 @@ const init = function () {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
   });
-};
-
-const createEarth = function () {
-  const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-
-  const material = new THREE.MeshPhongMaterial();
-
-  material.map = THREE.ImageUtils.loadTexture("./images/css_globe_diffuse.jpg");
-
-  earth = new THREE.Mesh(geometry, material);
-
-  scene.add(earth);
-
-  const light = new THREE.PointLight(0xffffff, 1, 500);
-  light.position.set(10, 0, 25);
-
-  scene.add(light);
 };
 
 // main animation loop - calls 50-60 in a second.
