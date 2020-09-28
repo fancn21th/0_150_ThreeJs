@@ -17,6 +17,52 @@ function randomSpherePoint(x0, y0, z0, radius) {
   return [x, y, z];
 }
 
+function getThetaPhiRadius(x, y, z) {
+  const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+  return {
+    theta: Math.acos(z / r),
+    phi: Math.atan(y / x),
+    radius: r,
+  };
+}
+
+function getXYZByThetaPhiRadius(theta, phi, radius) {
+  var x = radius * Math.sin(theta) * Math.cos(phi);
+  var y = radius * Math.sin(theta) * Math.sin(phi);
+  var z = radius * Math.cos(theta);
+  return [x, y, z];
+}
+
+function getThreePoints() {
+  const pointA = randomSpherePoint(0, 0, 0, 1);
+  const pointB = randomSpherePoint(0, 0, 0, 1);
+  const pointZero = [0, 0, 0];
+  // 中点
+  const midX = (pointA[0] + pointB[0]) / 2;
+  const midY = (pointA[1] + pointB[1]) / 2;
+  const midZ = (pointA[2] + pointB[2]) / 2;
+  const thetaPhiRadius = getThetaPhiRadius(midX, midY, midZ);
+  const pointMid = [midX, midY, midZ];
+  const pointSurface = getXYZByThetaPhiRadius(
+    thetaPhiRadius.theta,
+    thetaPhiRadius.phi,
+    1
+  );
+  const pointExpected = getXYZByThetaPhiRadius(
+    thetaPhiRadius.theta,
+    thetaPhiRadius.phi,
+    2
+  );
+  return {
+    pointA: pointA,
+    pointB: pointB,
+    pointSurface: pointSurface,
+    pointExpected: pointExpected,
+    pointMid: pointMid,
+    pointZero: pointZero,
+  };
+}
+
 ///////////////////////////////////////////////
 
 const createEarth = function () {
@@ -44,29 +90,19 @@ const createEarth = function () {
   scene.add(earth);
 };
 
-const createGeometry = function () {
-  const point1 = randomSpherePoint(0, 0, 0, 1);
-  const point3 = randomSpherePoint(0, 0, 0, 1);
-  const midX = (point1[0] + point3[0]) / 2;
-  const midY = (point1[1] + point3[1]) / 2;
-  const midZ = (point1[2] + point3[2]) / 2;
-  const point2 = [midX, midY, midZ];
-  const point4 = [0, 0, 0];
-  const point5 = [10, 10, 10];
-
+const createGeometry = function (points) {
   let geometry = new THREE.Geometry();
 
-  geometry.vertices.push(new THREE.Vector3().fromArray(point1));
-  geometry.vertices.push(new THREE.Vector3().fromArray(point2));
-  geometry.vertices.push(new THREE.Vector3().fromArray(point3));
-  geometry.vertices.push(new THREE.Vector3().fromArray(point4));
-  geometry.vertices.push(new THREE.Vector3().fromArray(point5));
+  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointA));
+  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointB));
+  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointZero));
+  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointMid));
+  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointSurface));
+  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointExpected));
 
   geometry.faces.push(new THREE.Face3(0, 1, 2));
-  geometry.faces.push(new THREE.Face3(1, 2, 3));
-  geometry.faces.push(new THREE.Face3(0, 2, 3));
-  geometry.faces.push(new THREE.Face3(0, 2, 3));
-  geometry.faces.push(new THREE.Face3(0, 2, 3));
+  geometry.faces.push(new THREE.Face3(0, 1, 4));
+  geometry.faces.push(new THREE.Face3(0, 1, 5));
 
   let material = new THREE.MeshBasicMaterial({
     color: 0xff00ff,
@@ -77,30 +113,24 @@ const createGeometry = function () {
   scene.add(shape);
 };
 
-const createFly = function () {
-  const point1 = randomSpherePoint(0, 0, 0, 1);
-  const point3 = randomSpherePoint(0, 0, 0, 1);
-  const midX = (point1[0] + point3[0]) / 2;
-  const midY = (point1[1] + point3[1]) / 2;
-  const midZ = (point1[2] + point3[2]) / 2;
-  const point2 = [midX, midY, midZ];
-
+const createFly = function (points) {
   const curve = new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3().fromArray(point1),
-    new THREE.Vector3().fromArray(point2),
-    new THREE.Vector3().fromArray(point3)
+    new THREE.Vector3().fromArray(points.pointA),
+    new THREE.Vector3().fromArray(points.pointExpected),
+    new THREE.Vector3().fromArray(points.pointB)
   );
-  const points = curve.getPoints(500);
+
+  const flyPoints = curve.getPoints(500);
 
   flyline = _Fly.addFly({
     color: `rgba(${THREE.Math.randInt(0, 255)},${THREE.Math.randInt(
       0,
       255
     )},${THREE.Math.randInt(0, 255)},1)`,
-    curve: points,
+    curve: flyPoints,
     width: 0.02,
     length: 100,
-    speed: 1,
+    speed: 3,
     repeat: Infinity,
   });
 
@@ -146,12 +176,15 @@ const init = function () {
 
   // do something rendering
 
+  const points = getThreePoints();
+
   // fly
-  // Array.apply(null, { length: 1 }).map(function () {
+  // Array.apply(null, { length: 100 }).map(function () {
   //   createFly();
   // });
   createEarth();
-  createGeometry();
+  createFly(points);
+  createGeometry(points);
 
   // create the renderer
   renderer = new THREE.WebGLRenderer({
@@ -177,8 +210,8 @@ const mainLoop = function () {
     // 更新线 必须
     _Fly.animation(delta);
   }
-  earth.rotation.y += 0.01;
-  shape.rotation.y += 0.01;
+  // earth.rotation.y += 0.01;
+  // shape.rotation.y += 0.01;
   renderer.render(scene, camera);
   requestAnimationFrame(mainLoop);
 };
