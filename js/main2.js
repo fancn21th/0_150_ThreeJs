@@ -1,5 +1,12 @@
 let scene, camera, renderer, _Fly, light, group;
 let clock = new THREE.Clock();
+const sceneBgColor = 0x000000,
+  lightColor = 0xffffff,
+  // flylineColor = `rgba(${THREE.Math.randInt(0, 255)},${THREE.Math.randInt(
+  //   0,
+  //   255
+  // )},${THREE.Math.randInt(0, 255)},1)`,
+  flylineColor = `rgba(255,255,255,1)`;
 
 /*
 Returns a random point of a sphere, evenly distributed over the sphere.
@@ -81,7 +88,7 @@ const getEarth = function () {
   // material.map = THREE.ImageUtils.loadTexture("./images/css_globe_diffuse.jpg");
 
   const material = new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
+    color: 0x0e0e0e,
     wireframe: true,
   });
 
@@ -98,13 +105,10 @@ const getFly = function (points) {
   const flyPoints = curve.getPoints(500);
 
   return _Fly.addFly({
-    color: `rgba(${THREE.Math.randInt(0, 255)},${THREE.Math.randInt(
-      0,
-      255
-    )},${THREE.Math.randInt(0, 255)},1)`,
+    color: flylineColor,
     curve: flyPoints,
-    width: 0.02,
-    length: 100,
+    width: 0.05,
+    length: 400,
     speed: 3,
     repeat: Infinity,
   });
@@ -156,7 +160,7 @@ const animate = function () {
     _Fly.animation(delta);
   }
   // group.rotation.x += 0.005;
-  // group.rotation.y += 0.005;
+  group.rotation.y += 0.005;
 };
 
 ///////////////////////////////////////////////
@@ -166,7 +170,7 @@ const animate = function () {
 const init = function () {
   // create the scene
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xffffff);
+  scene.background = new THREE.Color(sceneBgColor);
 
   // init _Fly
   _Fly = new InitFly({
@@ -181,12 +185,12 @@ const init = function () {
     1,
     1000
   );
-  camera.position.x = 1;
-  camera.position.y = 1;
+  // camera.position.x = 1;
+  // camera.position.y = 1;
   camera.position.z = 5;
 
   // light
-  light = new THREE.PointLight(0xffffff, 1, 100);
+  light = new THREE.PointLight(lightColor, 1, 100);
 
   light.position.set(10, 0, 25);
 
