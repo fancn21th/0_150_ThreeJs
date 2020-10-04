@@ -1,4 +1,4 @@
-let scene, camera, renderer, _Fly, flyline, earth, light, shape;
+let scene, camera, renderer, _Fly, flyline, earth, light, routeHelper, group;
 let clock = new THREE.Clock();
 
 /*
@@ -87,7 +87,8 @@ const createEarth = function () {
 
   earth = new THREE.Mesh(geometry, material);
 
-  scene.add(earth);
+  group.add(earth);
+  // scene.add(earth);
 };
 
 const createGeometry = function (points) {
@@ -109,8 +110,8 @@ const createGeometry = function (points) {
     side: THREE.DoubleSide,
     wireframe: true,
   });
-  shape = new THREE.Mesh(geometry, material);
-  scene.add(shape);
+  routeHelper = new THREE.Mesh(geometry, material);
+  group.add(routeHelper);
 };
 
 const createFly = function (points) {
@@ -134,7 +135,7 @@ const createFly = function (points) {
     repeat: Infinity,
   });
 
-  scene.add(flyline);
+  group.add(flyline);
 };
 
 ///////////////////////////////////////////////
@@ -163,6 +164,9 @@ const init = function () {
   camera.position.y = 1;
   camera.position.z = 5;
 
+  // create a group
+  group = new THREE.Object3D();
+
   // light
   light = new THREE.PointLight(0xffffff, 1, 100);
 
@@ -185,6 +189,8 @@ const init = function () {
   createEarth();
   createFly(points);
   createGeometry(points);
+
+  scene.add(group);
 
   // create the renderer
   renderer = new THREE.WebGLRenderer({
@@ -210,8 +216,7 @@ const mainLoop = function () {
     // 更新线 必须
     _Fly.animation(delta);
   }
-  // earth.rotation.y += 0.01;
-  // shape.rotation.y += 0.01;
+  group.rotation.y += 0.01;
   renderer.render(scene, camera);
   requestAnimationFrame(mainLoop);
 };
