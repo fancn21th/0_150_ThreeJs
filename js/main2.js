@@ -1,7 +1,6 @@
 let scene, camera, renderer, _Fly, light, group;
 let clock = new THREE.Clock();
 const sceneBgColor = 0x000000,
-  lightColor = 0xffffff,
   // flylineColor = `rgba(${THREE.Math.randInt(0, 255)},${THREE.Math.randInt(
   //   0,
   //   255
@@ -73,22 +72,13 @@ function getThreePoints() {
 ///////////////////////////////////////////////
 
 const getEarth = function () {
-  const geometry = new THREE.SphereGeometry(
-    1,
-    32,
-    32
-    // 0,
-    // 2 * Math.PI,
-    // 0,
-    // Math.PI / 2
-  );
+  const geometry = new THREE.SphereGeometry(1, 30, 20);
 
   // const material = new THREE.MeshPhongMaterial();
 
   // material.map = THREE.ImageUtils.loadTexture("./images/css_globe_diffuse.jpg");
 
-  const material = new THREE.MeshBasicMaterial({
-    color: 0x0e0e0e,
+  const material = new THREE.MeshLambertMaterial({
     wireframe: true,
   });
 
@@ -159,8 +149,6 @@ const animate = function () {
     // 更新线 必须
     _Fly.animation(delta);
   }
-  // group.rotation.x += 0.005;
-  group.rotation.y += 0.005;
 };
 
 ///////////////////////////////////////////////
@@ -178,55 +166,58 @@ const init = function () {
   });
 
   // create an locate the camera
-
   camera = new THREE.PerspectiveCamera(
-    100,
+    75,
     window.innerWidth / window.innerHeight,
-    1,
+    0.1,
     1000
   );
-  // camera.position.x = 1;
-  // camera.position.y = 1;
-  camera.position.z = 5;
+  camera.position.set(0, 0, 5);
 
   // light
-  light = new THREE.PointLight(lightColor, 1, 100);
+  const ambient = new THREE.HemisphereLight(0xffffbb, 0x080820);
+  scene.add(ambient);
 
-  light.position.set(10, 0, 25);
-
+  const light = new THREE.DirectionalLight(0xffffff, 3);
+  light.position.set(0, 2, 1);
   scene.add(light);
 
   // axes helper 坐标辅助线
   let axes = new THREE.AxesHelper(10);
   scene.add(axes);
 
-  // do custom rendering
-  customRender();
-
   // create the renderer
   renderer = new THREE.WebGLRenderer({
     antialias: true,
   });
-
   renderer.setSize(window.innerWidth, window.innerHeight);
-
   document.body.appendChild(renderer.domElement);
 
-  // resize
-  window.addEventListener("resize", () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-  });
-};
+  // controls
+  const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-// main animation loop - calls 50-60 in a second.
-const mainLoop = function () {
-  animate();
-  renderer.render(scene, camera);
-  requestAnimationFrame(mainLoop);
+  // do custom rendering
+  customRender();
+
+  // resize
+  window.addEventListener("resize", resize, false);
+
+  update();
 };
 
 ///////////////////////////////////////////////
 init();
 mainLoop();
+
+function update() {
+  animate();
+  requestAnimationFrame(update);
+  renderer.render(scene, camera);
+  capsule.rotation.z += 0.01;
+}
+
+function resize() {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+}
