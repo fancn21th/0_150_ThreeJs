@@ -1,4 +1,4 @@
-let scene, camera, renderer, _Fly, light, group;
+let scene, camera, renderer, _Fly, light, earthGroup;
 let clock = new THREE.Clock();
 const sceneBgColor = 0x000000,
   // flylineColor = `rgba(${THREE.Math.randInt(0, 255)},${THREE.Math.randInt(
@@ -7,67 +7,24 @@ const sceneBgColor = 0x000000,
   // )},${THREE.Math.randInt(0, 255)},1)`,
   flylineColor = `rgba(255,255,255,1)`;
 
-/*
-Returns a random point of a sphere, evenly distributed over the sphere.
-The sphere is centered at (x0,y0,z0) with the passed in radius.
-The returned point is returned as a three element array [x,y,z]. 
-*/
-function randomSpherePoint(x0, y0, z0, radius) {
-  var u = Math.random();
-  var v = Math.random();
-  var theta = 2 * Math.PI * u;
-  var phi = Math.acos(2 * v - 1);
-  var x = x0 + radius * Math.sin(phi) * Math.cos(theta);
-  var y = y0 + radius * Math.sin(phi) * Math.sin(theta);
-  var z = z0 + radius * Math.cos(phi);
-  return [x, y, z];
+function getSphericalPositions(radius) {
+  // Create a spherical object
+  var spherical = new THREE.Spherical();
+  // Set radius of spherical
+  spherical.radius = radius;
+  spherical.phi = THREE.Math.randFloat(0, Math.PI); // Phi is between 0 - PI
+  spherical.theta = THREE.Math.randFloat(0, Math.PI * 2); // Phi is between 0 - 2 PI
+  var vec3 = new THREE.Vector3().setFromSpherical(spherical);
+  return vec3;
 }
 
-function getThetaPhiRadius(x, y, z) {
-  const r = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2) + Math.pow(z, 2));
+const getPoints2 = function () {
   return {
-    theta: Math.acos(z / r),
-    phi: Math.atan(y / x),
-    radius: r,
+    pointA: getSphericalPositions(1),
+    pointB: getSphericalPositions(1),
+    pointZero: new THREE.Vector3(),
   };
-}
-
-function getXYZByThetaPhiRadius(theta, phi, radius) {
-  var x = radius * Math.sin(theta) * Math.cos(phi);
-  var y = radius * Math.sin(theta) * Math.sin(phi);
-  var z = radius * Math.cos(theta);
-  return [x, y, z];
-}
-
-function getThreePoints() {
-  const pointA = randomSpherePoint(0, 0, 0, 1);
-  const pointB = randomSpherePoint(0, 0, 0, 1);
-  const pointZero = [0, 0, 0];
-  // 中点
-  const midX = (pointA[0] + pointB[0]) / 2;
-  const midY = (pointA[1] + pointB[1]) / 2;
-  const midZ = (pointA[2] + pointB[2]) / 2;
-  const thetaPhiRadius = getThetaPhiRadius(midX, midY, midZ);
-  const pointMid = [midX, midY, midZ];
-  const pointSurface = getXYZByThetaPhiRadius(
-    thetaPhiRadius.theta,
-    thetaPhiRadius.phi,
-    1
-  );
-  const pointExpected = getXYZByThetaPhiRadius(
-    thetaPhiRadius.theta,
-    thetaPhiRadius.phi,
-    2
-  );
-  return {
-    pointA: pointA,
-    pointB: pointB,
-    pointSurface: pointSurface,
-    pointExpected: pointExpected,
-    pointMid: pointMid,
-    pointZero: pointZero,
-  };
-}
+};
 
 ///////////////////////////////////////////////
 
@@ -85,38 +42,33 @@ const getEarth = function () {
   return new THREE.Mesh(geometry, material);
 };
 
-const getFly = function (points) {
-  const curve = new THREE.QuadraticBezierCurve3(
-    new THREE.Vector3().fromArray(points.pointA),
-    new THREE.Vector3().fromArray(points.pointExpected),
-    new THREE.Vector3().fromArray(points.pointB)
-  );
+// const getFly = function (points) {
+//   const curve = new THREE.QuadraticBezierCurve3(
+//     new THREE.Vector3().fromArray(points.pointA),
+//     new THREE.Vector3().fromArray(points.pointExpected),
+//     new THREE.Vector3().fromArray(points.pointB)
+//   );
 
-  const flyPoints = curve.getPoints(500);
+//   const flyPoints = curve.getPoints(500);
 
-  return _Fly.addFly({
-    color: flylineColor,
-    curve: flyPoints,
-    width: 0.05,
-    length: 400,
-    speed: 3,
-    repeat: Infinity,
-  });
-};
+//   return _Fly.addFly({
+//     color: flylineColor,
+//     curve: flyPoints,
+//     width: 0.05,
+//     length: 400,
+//     speed: 3,
+//     repeat: Infinity,
+//   });
+// };
 
 const getRouteHelper = function (points) {
   let geometry = new THREE.Geometry();
 
-  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointA));
-  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointB));
-  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointZero));
-  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointMid));
-  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointSurface));
-  geometry.vertices.push(new THREE.Vector3().fromArray(points.pointExpected));
+  geometry.vertices.push(points.pointZero);
+  geometry.vertices.push(points.pointA);
+  geometry.vertices.push(points.pointB);
 
   geometry.faces.push(new THREE.Face3(0, 1, 2));
-  geometry.faces.push(new THREE.Face3(0, 1, 4));
-  geometry.faces.push(new THREE.Face3(0, 1, 5));
 
   let material = new THREE.MeshBasicMaterial({
     color: 0xff00ff,
@@ -128,19 +80,18 @@ const getRouteHelper = function (points) {
 };
 
 const customRender = function () {
-  // create a group
-  group = new THREE.Object3D();
+  earthGroup = new THREE.Object3D();
 
-  const points = getThreePoints();
+  const points = getPoints2();
   const earth = getEarth();
-  const flyline = getFly(points);
+  // const flyline = getFly(points);
   const routeHelper = getRouteHelper(points);
 
-  group.add(earth);
-  group.add(flyline);
-  group.add(routeHelper);
+  earthGroup.add(earth);
+  // earthGroup.add(flyline);
+  earthGroup.add(routeHelper);
 
-  scene.add(group);
+  scene.add(earthGroup);
 };
 
 const animate = function () {
@@ -207,13 +158,11 @@ const init = function () {
 
 ///////////////////////////////////////////////
 init();
-mainLoop();
 
 function update() {
   animate();
   requestAnimationFrame(update);
   renderer.render(scene, camera);
-  capsule.rotation.z += 0.01;
 }
 
 function resize() {
